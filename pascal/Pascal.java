@@ -3,6 +3,8 @@ package pascal;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class Pascal {
 	public static final int LIMIT = 10;
@@ -25,13 +27,14 @@ public class Pascal {
 			while ((str = br.readLine()) != null) {
 				if (beginRead) {
 					if (str.matches("[0-9]{10}\t.*")) {
-		
+
 						symb[lineCount] = str;
 						lineCount++;
 
 						if (lineCount == LIMIT) {
 							message += convertToChar(symb);
 							lineCount = 0;
+
 							// break;
 						}
 					}
@@ -65,87 +68,147 @@ public class Pascal {
 
 		if (debug)
 			System.out.print(result + "|");
-		
+
 		return (char) result;
 	}
 
 	public static int findMaxChain(char[][] a) {
-		int maxLen = 0;
-		char dg = '\u0000';
-		int curLen = 0;
+		
+		ArrayList<String> lines = new ArrayList<>();
+		String tmpbuf = "";
+
 		for (int i = 0; i < a.length; i++) {
-			for (int j = 1; j < a.length; j++) {
-				if (a[i][j] == a[i][j - 1]) {
-					curLen++;
-				} else {
-					if (curLen > maxLen) {
-						dg = a[i][j - 1];
-						maxLen = curLen;
-						curLen = 0;
-					} else if (curLen == maxLen && a[i][j - 1] > dg) {
-						dg = a[i][j - 1];
-						curLen = 0;
-					} else {
-						curLen = 0;
-					}
-				}
+			for (int j = 0; j < a.length; j++) {
+				tmpbuf += a[i][j];
 			}
-			curLen = 0;
+			lines.add(tmpbuf);
+			tmpbuf = "";
 		}
+
 		for (int j = 0; j < a.length; j++) {
-			for (int i = 1; i < a.length; i++) {
-				if (a[i][j] == a[i - 1][j]) {
-					curLen++;
+			for (int i = 0; i < a.length; i++) {
+				tmpbuf += a[i][j];
+			}
+			lines.add(tmpbuf);
+			tmpbuf = "";
+		}
+
+		for (int k = 0; k < a.length; k++) {
+			for (int i = k, j = 0; k < a.length - 1 && i < a.length; i++, j++) {
+				tmpbuf += a[i][j];
+			}
+			lines.add(tmpbuf);
+			tmpbuf = "";
+
+			for (int i = k, j = 0; k > 0 && i >= 0; i--, j++) {
+				tmpbuf += a[i][j];
+			}
+			lines.add(tmpbuf);
+			tmpbuf = "";
+		}
+
+		for (int k = 1; k < a.length - 1; k++) {
+			for (int i = 0, j = k; j < a.length; i++, j++) {
+				tmpbuf += a[i][j];
+			}
+			lines.add(tmpbuf);
+			tmpbuf = "";
+
+			for (int i = a.length - 1, j = k; j < a.length; i--, j++) {
+				tmpbuf += a[i][j];
+			}
+			lines.add(tmpbuf);
+			tmpbuf = "";
+		}
+		
+		return evalSingle(lines);
+	}
+
+	public static int evalSingle(ArrayList<String> lines){
+		TreeSet<Chain> chains = new TreeSet<>();
+		char cPrev = '\u0000';
+		int cQty = 0;
+		for(String str: lines){
+			for(char c: str.toCharArray()){
+				if(cQty == 0){
+					cPrev = c;
+					cQty = 1;
+				} else if(c == cPrev){
+					cQty++;
 				} else {
-					if (curLen > maxLen) {
-						dg = a[i - 1][j];
-						maxLen = curLen;
-						curLen = 0;
-					} else if (curLen == maxLen && a[i - 1][j] > dg) {
-						dg = a[i - 1][j];
-						curLen = 0;
-					} else {
-						curLen = 0;
+					if(cQty > 1){
+						chains.add(new Chain(Integer.parseInt(cPrev+""),cQty));
 					}
+					cPrev = c;
+					cQty = 1;
 				}
 			}
-			curLen = 0;
-		}
-		for (int i = 1; i < a.length; i++) {
-			curLen = 0;
-			if (a[i][i] == a[i - 1][i - 1]) {
-				curLen++;
-			} else {
-				if (curLen > maxLen) {
-					dg = a[i - 1][i - 1];
-					maxLen = curLen;
-					curLen = 0;
-				} else if (curLen == maxLen && a[i - 1][i - 1] > dg) {
-					dg = a[i - 1][i - 1];
-					curLen = 0;
-				} else {
-					curLen = 0;
-				}
+			if(cQty > 1){
+				chains.add(new Chain(Integer.parseInt(cPrev+""),cQty));
 			}
+			cQty = 0;
 		}
-		for (int i = 1; i < a.length; i++) {
-			curLen = 0;
-			if (a[i][a.length - (i + 1)] == a[i - 1][a.length - i]) {
-				curLen++;
-			} else {
-				if (curLen > maxLen) {
-					dg = a[i - 1][a.length - i];
-					maxLen = curLen;
-					curLen = 0;
-				} else if (curLen == maxLen && a[i - 1][a.length - i] > dg) {
-					dg = a[i - 1][a.length - i];
-					curLen = 0;
-				} else {
-					curLen = 0;
-				}
-			}
+		return chains.first().getDigit();
+	}
+}
+
+
+class Chain implements Comparable<Chain> {
+	private int digit;
+	private int qty;
+
+	public Chain(int digit, int qty) {
+		super();
+		this.digit = digit;
+		this.qty = qty;
+	}
+
+	public int getDigit() {
+		return digit;
+	}
+
+	public int getQty() {
+		return qty;
+	}
+
+	@Override
+	public String toString() {
+		return "Chain [digit=" + digit + ", qty=" + qty + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + digit;
+		result = prime * result + qty;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chain other = (Chain) obj;
+		if (digit != other.digit)
+			return false;
+		if (qty != other.qty)
+			return false;
+		return true;
+	}
+
+	@Override
+	public int compareTo(Chain other) {
+		if (other == null || this == null) {
+			return -1000;
+		} else {
+			return (other.qty * 10 + other.digit)
+					- (this.qty * 10 + this.digit);
 		}
-		return Integer.parseInt(dg + "");
 	}
 
 }
