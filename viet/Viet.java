@@ -93,7 +93,7 @@ public class Viet {
 		if (a[pt.getX()][pt.getY()] == 'F') {
 			successRts.add(localRt);
 			return;
-		} else if (!successRts.isEmpty() && successRts.first().length() == 1) {
+		} else if (!successRts.isEmpty() && successRts.first().length() == localRt.length()) {
 			return;
 		} else if (tmpRt.contains(pt)) {
 			return;
