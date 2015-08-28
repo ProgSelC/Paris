@@ -8,7 +8,7 @@ import java.util.TreeSet;
 
 public class Pascal {
 	public static final int LIMIT = 10;
-	public static boolean debug = true;
+	public static boolean debug = false;
 
 	public static void main(String[] args) {
 		System.out.println(evalTask("Паскаль.txt"));
